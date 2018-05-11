@@ -80,18 +80,27 @@ trap(struct trapframe *tf)
    
   //PAGEBREAK: 13
   default:
-    if(proc == 0 || (tf->cs&3) == 0){
+
+    if(proc->tf->eip== 0xffffffff)
+    {
+      kill(proc->pid);
+    }
+
+    else if(proc == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
               tf->trapno, cpu->id, tf->eip, rcr2());
       panic("trap");
     }
+
+    else
+    {
     // In user space, assume process misbehaved.
     cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
             rcr2());
-    proc->killed = 1;
+    proc->killed = 1;}
   }
 
   // Force process exit if it has been killed and is in user space.

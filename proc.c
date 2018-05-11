@@ -232,7 +232,7 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-        freevm(p->pgdir);
+        // freevm(p->pgdir);
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -482,6 +482,12 @@ int clone(void *stack)
 {
   int i, pid;
   struct proc *np;
+  uint parent_stack_bgn;
+
+  uint ebp_offset;
+  uint esp_offset;
+
+
 
   // Allocate process.
   if((np = allocproc()) == 0)
@@ -499,6 +505,61 @@ int clone(void *stack)
   *np->tf = *proc->tf;
   np->pgdir=proc->pgdir;
 
+  // save parent stack beginning inside variable.
+  parent_stack_bgn=proc->stack_bgn;
+
+  uint parent_stack_end=parent_stack_bgn-4096;
+
+  // ebp_offset= proc->tf->ebp - parent_stack_bgn;
+  // esp_offset= proc->tf->esp - parent_stack_bgn;
+
+  ebp_offset= parent_stack_end - proc->tf->ebp;
+  esp_offset= parent_stack_end - proc->tf->esp;
+
+  // np->tf->ebp= ((int)stack)+ebp_offset;
+  // np->tf->esp= ((int)stack)+esp_offset;
+
+  np->tf->ebp= ((int)stack)-ebp_offset;
+  np->tf->esp= ((int)stack)-esp_offset;
+
+
+  memmove(stack,((void *)(parent_stack_end)),4096);
+
+  cprintf("Parent Stack Range: %d - %d \n ",parent_stack_end, parent_stack_bgn);
+  cprintf("Child Stack Range: %d - %d \n ",stack, stack+4096);
+
+  uint current_addr= np->tf->ebp;
+  // written ebp address
+  // current_addr=current_addr+4;
+  // *((int *)(current_addr))= ((int)stack)-parent_stack_end+*((int *)(current_addr));
+
+  // uint parent_current_addr;
+  // parent_current_addr=parent_stack_bgn;
+  // for(int i =1024; i > 0 ; i--)
+  // {
+  //   // current_addr= *((int *)(current_addr));
+  //   cprintf("Address: %d  Hex: %x  Decimal: %d  Current EBP: %d  \n", parent_current_addr, *((int *)(parent_current_addr)),*((int *)(parent_current_addr)),proc->tf->ebp);
+  //   parent_current_addr=parent_current_addr-4;
+
+  // }
+
+
+  while(1>0)
+  {
+    // current_addr=current_addr+4;
+    cprintf("Written Ebp value: %d\n ",current_addr);
+    *((int *)(current_addr))= ((int)stack)-parent_stack_end+*((int *)(current_addr));
+    if((*((int *)(current_addr+4)))== 0xffffffff)
+    {
+      cprintf("BREAK!! ",current_addr);
+      break;
+    }
+    current_addr= *((int *)(current_addr));
+  }
+
+
+
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -515,7 +576,7 @@ int clone(void *stack)
   acquire(&ptable.lock);
   np->state = RUNNABLE;
   release(&ptable.lock);
-  
+      // cprintf("Clone is called");
+
   return pid;
-    cprintf("Clone is called");
 }

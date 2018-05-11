@@ -61,6 +61,9 @@ exec(char *path, char **argv)
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
 
+  // save stack beginning.
+  proc->stack_bgn=sp;
+
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
@@ -86,7 +89,6 @@ exec(char *path, char **argv)
       last = s+1;
   safestrcpy(proc->name, last, sizeof(proc->name));
 
-  cprintf("%d %d", proc->tf->ebp, proc->tf->esp);
 
   // proc->tf->ebp
 
