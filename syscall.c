@@ -98,7 +98,7 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
-
+extern int sys_clone(void);
 extern int sys_shutdown(void);
 extern int sys_print_free_frame_cnt(void);
 static int (*syscalls[])(void) = {
@@ -124,6 +124,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_shutdown]      sys_shutdown,
+[SYS_clone]      sys_clone,
 [SYS_print_free_frame_cnt]  sys_print_free_frame_cnt,
 };
 

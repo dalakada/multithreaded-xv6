@@ -86,6 +86,11 @@ exec(char *path, char **argv)
       last = s+1;
   safestrcpy(proc->name, last, sizeof(proc->name));
 
+  cprintf("%d %d", proc->tf->ebp, proc->tf->esp);
+
+  // proc->tf->ebp
+
+
   // Commit to the user image.
   oldpgdir = proc->pgdir;
   proc->pgdir = pgdir;
@@ -104,4 +109,6 @@ exec(char *path, char **argv)
     end_op();
   }
   return -1;
+
+
 }

@@ -118,6 +118,8 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+void            shutdown(void);
+int             clone(void*);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

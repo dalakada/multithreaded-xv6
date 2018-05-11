@@ -91,16 +91,33 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
-int sys_shutdown(void)
-{
-  /* Either of the following will work. Does not harm to put them together. */
-  outw(0xB004, 0x0|0x2000); // working for old qemu
-  outw(0x604, 0x0|0x2000); // working for newer qemu
+// int sys_shutdown(void)
+// {
+//   /* Either of the following will work. Does not harm to put them together. */
+//   outw(0xB004, 0x0|0x2000); // working for old qemu
+//   outw(0x604, 0x0|0x2000); // working for newer qemu
 
-  return  0;
-}
+//   return  0;
+// }
 int sys_print_free_frame_cnt(void)
 {
     cprintf("free-frames %d\n", free_frame_cnt);
     return 0;
 }
+void
+sys_shutdown(void)
+{
+  return shutdown();
+}
+int sys_clone(void)
+{
+  void* stack;
+  argptr(0, (void*) &stack, 4096);
+
+  return clone(stack);
+  
+}
+
+
+// int sys_clone(void)
+// return clone();

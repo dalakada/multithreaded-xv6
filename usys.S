@@ -31,3 +31,5 @@ SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(shutdown)
 SYSCALL(print_free_frame_cnt)
+SYSCALL(clone)
+
