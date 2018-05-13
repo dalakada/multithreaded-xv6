@@ -39,11 +39,6 @@ void change_local_var(int tid)
 
 int main(int argc, char *argv[])
 { 
-    printf(1,"%s","inside test \n");
-    // procThread_create();
-    // exit();
-    // procThread_create();
-// }
 
     if (argc < 2)
     {

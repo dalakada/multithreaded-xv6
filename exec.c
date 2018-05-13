@@ -63,6 +63,8 @@ exec(char *path, char **argv)
 
   // save stack beginning.
   proc->stack_bgn=sp;
+  proc->cum_counter=1;
+  proc->is_thread=0;
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {

@@ -67,6 +67,11 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint stack_bgn;              // stack beginning for the process.
+  uint return_val;             // return value of the process.
+  uint cum_counter;            // keeps track of how many active threads are on same thread.
+  uint stack_addr;             // stack beginning for child threads. save it for free purposes.
+  int is_thread;                // 1 means its thread 0 means it normal process.
+  pde_t ** pgdir_ptr; 
 };
 
 // Process memory is laid out contiguously, low addresses first:

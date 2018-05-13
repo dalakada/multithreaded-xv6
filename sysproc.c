@@ -117,6 +117,27 @@ int sys_clone(void)
   return clone(stack);
   
 }
+void sys_join()
+{
+  int tid;
+  argint(0, &tid);
+
+  int* ret_p;
+  argptr(1, (char**)&ret_p, 4);
+
+  void ** stack;
+  argptr(2, (void*) &stack, 4);
+
+  return join(tid,ret_p,stack);
+  
+}
+void sys_thread_exit (void)
+{
+  int ret_val;
+  argint(0, &ret_val);
+  return thread_exit(ret_val);
+
+}
 
 
 // int sys_clone(void)

@@ -83,6 +83,10 @@ trap(struct trapframe *tf)
 
     if(proc->tf->eip== 0xffffffff)
     {
+      proc->return_val=proc->tf->eax;
+      proc->cum_counter=proc->cum_counter-1;
+      // update parent cum counter
+      proc->parent->cum_counter=proc->parent->cum_counter-1;
       kill(proc->pid);
     }
 

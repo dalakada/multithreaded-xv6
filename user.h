@@ -25,6 +25,8 @@ int sleep(int);
 int uptime(void);
 void shutdown(void);
 int clone(void *stack);
+void join(int tid, int * ret_p, void ** stack);
+void thread_exit(int ret_val);
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);

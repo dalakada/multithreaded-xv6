@@ -108,6 +108,8 @@ struct proc*    copyproc(struct proc*);
 void            exit(void);
 int             fork(void);
 int             growproc(int);
+int 			isFree(struct proc* , pde_t*);
+
 int             kill(int);
 void            pinit(void);
 void            procdump(void);
@@ -120,7 +122,8 @@ void            wakeup(void*);
 void            yield(void);
 void            shutdown(void);
 int             clone(void*);
-
+void            join(int, int *, void **);
+void 			thread_exit(int);
 // swtch.S
 void            swtch(struct context**, struct context*);
 

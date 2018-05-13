@@ -172,6 +172,11 @@ fork(void)
 void
 exit(void)
 {
+
+  proc->cum_counter=proc->cum_counter-1;
+  // update parent cum counter
+  proc->parent->cum_counter=proc->parent->cum_counter-1;
+
   struct proc *p;
   int fd;
 
@@ -209,6 +214,38 @@ exit(void)
   proc->state = ZOMBIE;
   sched();
   panic("zombie exit");
+}
+
+
+int isFree(struct proc *parent ,  pde_t* parent_pgdir)
+{
+  release(&ptable.lock);
+  acquire(&ptable.lock);
+  struct proc *p;
+
+  int is_free=1;
+ for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+ {
+
+  cprintf("111111111111111\n");
+  if(p->state != ZOMBIE)
+  {
+      cprintf("2222222222222222\n");
+    if(parent!=p)
+    {
+        cprintf("333333333333333333333333\n");
+      if(p->pgdir==parent_pgdir)
+      {
+          cprintf("444444444444444444rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr4444\n");
+        is_free=0;
+      }
+    }
+   }
+  }
+    cprintf("555555555555\n");
+  release(&ptable.lock);
+    cprintf("666666666666666666\n");
+  return is_free; 
 }
 
 // Wait for a child process to exit and return its pid.
@@ -478,6 +515,58 @@ shutdown(void)
   outw(0x604, 0x0|0x2000);
 }
 
+void thread_exit(int ret_val)
+{
+  proc->return_val=ret_val;
+
+
+  exit();
+
+}
+
+void join(int tid, int * ret_p, void ** stack)
+{
+  struct proc *p;
+  int havekids;//, pid;
+
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for zombie children.
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->parent != proc)
+        continue;
+      havekids = 1;
+      if((p->state == ZOMBIE) &&  (p->pid == tid)){
+        // Found one.
+        // pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        // freevm(p->pgdir);
+        p->state = UNUSED;
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        *ret_p=p->return_val;
+        *stack=(void *)p->stack_addr;
+        release(&ptable.lock);
+        // return pid;
+        return;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || proc->killed){
+      release(&ptable.lock);
+      // return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(proc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
 int clone(void *stack)
 {
   int i, pid;
@@ -505,8 +594,15 @@ int clone(void *stack)
   *np->tf = *proc->tf;
   np->pgdir=proc->pgdir;
 
+  np->is_thread=1;
+
+  np->pgdir_ptr= &(proc->pgdir);
   // save parent stack beginning inside variable.
   parent_stack_bgn=proc->stack_bgn;
+
+  proc->cum_counter=proc->cum_counter+1;
+  np->cum_counter=proc->cum_counter;
+
 
   uint parent_stack_end=parent_stack_bgn-4096;
 
@@ -525,8 +621,11 @@ int clone(void *stack)
 
   memmove(stack,((void *)(parent_stack_end)),4096);
 
-  cprintf("Parent Stack Range: %d - %d \n ",parent_stack_end, parent_stack_bgn);
-  cprintf("Child Stack Range: %d - %d \n ",stack, stack+4096);
+  np->stack_addr=(int)stack;
+
+
+  // cprintf("Parent Stack Range: %d - %d \n ",parent_stack_end, parent_stack_bgn);
+  // cprintf("Child Stack Range: %d - %d \n ",stack, stack+4096);
 
   uint current_addr= np->tf->ebp;
   // written ebp address
@@ -547,11 +646,11 @@ int clone(void *stack)
   while(1>0)
   {
     // current_addr=current_addr+4;
-    cprintf("Written Ebp value: %d\n ",current_addr);
+    // cprintf("Written Ebp value: %d\n ",current_addr);
     *((int *)(current_addr))= ((int)stack)-parent_stack_end+*((int *)(current_addr));
     if((*((int *)(current_addr+4)))== 0xffffffff)
     {
-      cprintf("BREAK!! ",current_addr);
+      // cprintf("BREAK!! ",current_addr);
       break;
     }
     current_addr= *((int *)(current_addr));
